@@ -1,3 +1,4 @@
+import pandas as pd
 """
 TODO:
 
@@ -8,3 +9,6 @@ Example:
     tpx = mortality_table.tpx(t=5, x=10)
     tqx = mortality_table.tqx(t=5, x=10)
 """
+class MortalityTable:
+    def __init__(self, df_mortality: pd.DataFrame):
+        pass

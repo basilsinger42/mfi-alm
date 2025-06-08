@@ -1,19 +1,23 @@
 [project]
 name = "mfi-alm"
 version = "0.1.0"
-description = ""
-authors = [
-    {name = "Basil Singer",email = "basil.singer@utoronto.ca"}
-]
+description = "ALM project for MFI programme. For educational purposes only."
+authors = [{ name = "Basil Singer", email = "basil.singer@utoronto.ca" }]
 readme = "README.md"
 requires-python = ">=3.13"
 
+[tool.poetry]
+packages = [{ include = "mfi_alm", from = "src" }]
 
 [tool.poetry.group.dev.dependencies]
 black = ">=25.1.0"
 flake8 = ">=7.2.0"
 pytest = ">=7.4.4"
 
+
+[tool.poetry.dependencies]
+numpy = "^2.3.0"
+pandas = "^2.3.0"
 [tool.black]
 line-length = 120
 target-version = ["py313"]
