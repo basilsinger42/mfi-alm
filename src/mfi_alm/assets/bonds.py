@@ -1,4 +1,4 @@
-from asset import Asset
+from mfi_alm.assets.asset import Asset
 """
 TODO:
 
