@@ -1,8 +1,6 @@
-<<<<<<< Updated upstream
-from mfi_alm.assets.asset import Asset
-=======
 
->>>>>>> Stashed changes
+from mfi_alm.assets.asset import Asset
+
 """
 TODO:
 
