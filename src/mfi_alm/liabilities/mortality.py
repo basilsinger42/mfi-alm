@@ -1,26 +1,13 @@
-import pandas as pd
 import numpy as np
-"""
-TODO:
-
-Create a class called MortalityTable.
-It reads in a dataframe that has the columns x and lx.
-Example:
-    mortality_table = MortalityTable(df_mortality=df_mortality)
-    tpx = mortality_table.tpx(t=5, x=10)
-    tqx = mortality_table.tqx(t=5, x=10)
-"""
+import pandas as pd
 
 
 class MortalityTable:
     def __init__(self, df_mortality: pd.DataFrame):
-        if not {'x', 'lx'}.issubset(df_mortality.columns):
+        if not {"x", "lx"}.issubset(df_mortality.columns):
             raise ValueError("Mortality table must contain 'x' and 'lx' columns.")
 
-        self.df = df_mortality.set_index('x').copy()
-        self.df['qx'] = 1 - self.df['lx'].shift(-1) / self.df['lx']
-        self.df['qx'] = self.df['qx'].fillna(1.0)
-
+        self.df = df_mortality.set_index("x").copy()
         self.min_age = self.df.index.min()
         self.max_age = self.df.index.max()
 
@@ -29,7 +16,7 @@ class MortalityTable:
             return 1.0
         if x + t > self.max_age:
             return 0.0
-        return self.df.loc[x + t, 'lx'] / self.df.loc[x, 'lx']
+        return self.df.loc[x + t, "lx"] / self.df.loc[x, "lx"]
 
     def tqx(self, t: int, x: int) -> float:
         return 1 - self.tpx(t, x)
@@ -43,6 +30,7 @@ class MortalityTable:
     def simulate_remaining_death_year(self, x: int, seed: int = 42, t_horizon: int = 120) -> int:
         if x >= self.max_age:
             return 0
+
         probs = self.discrete_remaining_mortality_probs(x, t_horizon)
         probs /= probs.sum()
         rng = np.random.default_rng(seed)
