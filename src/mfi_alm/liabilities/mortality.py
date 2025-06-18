@@ -1,4 +1,5 @@
 import pandas as pd
+import numpy as np
 """
 TODO:
 
@@ -9,25 +10,40 @@ Example:
     tpx = mortality_table.tpx(t=5, x=10)
     tqx = mortality_table.tqx(t=5, x=10)
 """
+
+
 class MortalityTable:
-        def __init__(self, df_mortality: pd.DataFrame):
-            if not {'x', 'lx'}.issubset(df_mortality.columns):
-                raise ValueError("Mortality table must contain 'x' and 'lx' columns.")
+    def __init__(self, df_mortality: pd.DataFrame):
+        if not {'x', 'lx'}.issubset(df_mortality.columns):
+            raise ValueError("Mortality table must contain 'x' and 'lx' columns.")
 
-            self.df = df_mortality.set_index('x').copy()
-            self.df['qx'] = 1 - self.df['lx'].shift(-1) / self.df['lx']
-            self.df['qx'] = self.df['qx'].fillna(1.0)
+        self.df = df_mortality.set_index('x').copy()
+        self.df['qx'] = 1 - self.df['lx'].shift(-1) / self.df['lx']
+        self.df['qx'] = self.df['qx'].fillna(1.0)
 
-        def tpx(self, t: int, x: int) -> float:
-            """
-            _tp_x = l_{x+t} / l_x
-            """
-            if x not in self.df.index or x + t not in self.df.index:
-                raise ValueError("Age or age+t out of range.")
-            return self.df.loc[x + t, 'lx'] / self.df.loc[x, 'lx']
+        self.min_age = self.df.index.min()
+        self.max_age = self.df.index.max()
 
-        def tqx(self, t: int, x: int) -> float:
-            """
-            _tq_x = 1 - _tp_x
-            """
-            return 1 - self.tpx(t, x)
+    def tpx(self, t: int, x: int) -> float:
+        if x < self.min_age:
+            return 1.0
+        if x + t > self.max_age:
+            return 0.0
+        return self.df.loc[x + t, 'lx'] / self.df.loc[x, 'lx']
+
+    def tqx(self, t: int, x: int) -> float:
+        return 1 - self.tpx(t, x)
+
+    def prob_Kx_equals_k(self, k: int, x: int) -> float:
+        return self.tpx(k, x) * self.tqx(1, x + k)
+
+    def discrete_remaining_mortality_probs(self, x: int, t_horizon: int = 120) -> np.ndarray:
+        return np.array([self.prob_Kx_equals_k(k, x) for k in range(t_horizon + 1)])
+
+    def simulate_remaining_death_year(self, x: int, seed: int = 42, t_horizon: int = 120) -> int:
+        if x >= self.max_age:
+            return 0
+        probs = self.discrete_remaining_mortality_probs(x, t_horizon)
+        probs /= probs.sum()
+        rng = np.random.default_rng(seed)
+        return rng.choice(len(probs), p=probs)
