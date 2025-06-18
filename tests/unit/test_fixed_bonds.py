@@ -1,50 +1,44 @@
 """
 TODO: Create unit tests that test bonds.
 """
-import pytest
-import datetime
+
 from mfi_alm.assets import FixedBond
 
+import pytest
+import numpy as np
 
-class TestFixedBond:
-    def test_dataclass_features(self):
-        """Testing dataclass auto-generation"""
-        bond1 = FixedBond(
-            cusip="T123",
-            par_value=1000,
-            annual_coupon_rate=0.045,  # decimal
-            annual_frequency=2,
-            maturity_date="12/31/2030",
-            issue_date=datetime.date(2020, 1, 1),  # Hybrid input
-            currency="CAD"
-        )
+@pytest.fixture
+def sample_bond() -> FixedBond:
+    """Example of a test bond"""
+    return FixedBond(
+        face=1000,
+        coupon=0.05,
+        maturity=5,
+        freq=2
+    )
 
-        bond2 = FixedBond.from_percent(
-            cusip="T123",
-            par_value=1000,
-            annual_coupon_rate=4.5,  # Percentage
-            annual_frequency=2,
-            maturity_date="12/31/2030",
-            issue_date="01/01/2020",
-            currency="CAD"
-        )
+def test_cashflows(sample_bond: FixedBond):
+    """Test cashflow generation"""
+    flows = sample_bond.cashflows()
+    #It should generate 10 periods cashflow
+    assert len(flows) == 10
+    # First period cashflow should be 25 (0.5year, 25dollar)
+    assert flows[0] == (0.5, 25)
+    # Last period cashflow should be 1025 (5year, 1025dollar)
+    assert flows[-1] == (5.0, 1025)
 
-        # Testing of automated implementations__eq__
-        assert bond1 == bond2
+def test_price_at_par(sample_bond: FixedBond):
+    """Testing parity bond pricing (YTM = coupon rate)"""
+    price = sample_bond.price(ytm=0.05)
+    # Prices should be close to face value (1% error allowed)
+    assert np.isclose(price, 1000, rtol=1e-2)
 
-        # Testing__repr__readability
-        assert "T123" in repr(bond1)
+def test_price_above_par(sample_bond: FixedBond):
+    """Testing premium bond pricing (YTM<coupon rate)"""
+    price = sample_bond.price(ytm=0.04)
+    assert price > 1000  # Price should be higher than face value
 
-    def test_coupon_conversion(self):
-        """Automatic conversion of test percentages"""
-        bond = FixedBond.from_percent(
-            cusip="C001",
-            par_value=1000,
-            annual_coupon_rate=5.0,  # input 5.0%
-            annual_frequency=2,
-            maturity_date="12/31/2030",
-            issue_date="01/01/2023",
-            currency="CNY"
-        )
-        assert bond.annual_coupon_rate == 0.05  # Transformed to decimal
-        assert bond.coupon_per_period == 25.0  # (1000 * 0.05)/2
+def test_price_below_par(sample_bond: FixedBond):
+    """Testing discount bond pricing (YTM > coupon rate)"""
+    price = sample_bond.price(ytm=0.06)
+    assert price < 1000  # Price should be lower than face value

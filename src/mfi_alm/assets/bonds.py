@@ -8,45 +8,46 @@ Create a class called FixedBond (e.g., leverage asset_type_pricing.ipynb logic).
 from the general Asset class.
 """
 
-from dataclasses import dataclass, field
-from typing import Optional, Union
-import datetime
-from mfi_alm.assets.asset import Asset
+import pandas as pd
 
-DateLike = Union[str, datetime.date]
+import numpy as np
 
-@dataclass
-class FixedBond(Asset):
-    """Inherent from Asset"""
-    cusip: str
-    par_value: float
-    annual_coupon_rate: float
-    annual_frequency: int
-    maturity_date: datetime.date
-    issue_date: datetime.date
-    currency: str
-    first_call_date: Optional[datetime.date] = None
-    call_price: Optional[float] = None
+from typing import List, Tuple
 
-    coupon_per_period: float = field(init=False)
 
-    def __post_init__(self):
-        """post-initialization processing"""
-        if self.annual_coupon_rate > 1:
-            self.annual_coupon_rate /= 100.0
-        self.maturity_date = self._parse_date(self.maturity_date)
-        self.issue_date = self._parse_date(self.issue_date)
-        self.first_call_date = self._parse_date(self.first_call_date) if self.first_call_date else None
-        self.coupon_per_period = (self.par_value * self.annual_coupon_rate) / self.annual_frequency
-        if self.call_price and self.call_price < 0:
-            raise ValueError("Redemption price cannot be negative")
+class FixedBond:
+    """ Vanilla non-callable fixed rate bonds """
+
+    def __init__(self, face: float, coupon: float, maturity: float, freq: int = 2):
+        """
+        parameters:
+            face: Face value
+            coupon: Annual coupon rate
+            maturity: Maturity
+            freq: Coupon payment frequency
+        """
+        self.face = face
+        self.coupon = coupon
+        self.maturity = maturity
+        self.freq = freq
+
+    def cashflows(self) -> List[Tuple[float, float]]:
+        """Generate all future cash flows from bonds (time, amount)"""
+        # Calculate the amount of each interest payment
+        c = self.coupon * self.face / self.freq
+        # Calculate total number of interest payments
+        n = int(self.maturity * self.freq)
+        # Generate cash flow (excluding principal) for each period
+        flows = [(i / self.freq, c) for i in range(1, n + 1)]
+        # Final installment plus principal
+        flows[-1] = (flows[-1][0], flows[-1][1] + self.face)
+        return flows
+
+    def price(self, ytm: float) -> float:
+        """Calculate bond price by continuously compounding"""
+        return sum(cf * self._disc(ytm, t) for t, cf in self.cashflows())
 
     @staticmethod
-    def _parse_date(date: DateLike) -> datetime.date:
-        if isinstance(date, str):
-            return datetime.datetime.strptime(date, "%m/%d/%Y").date()
-        return date
-
-    @classmethod
-    def from_percent(cls, cusip: str, par_value: float, annual_coupon_rate: float, **kwargs) -> "FixedBond":
-        return cls(cusip=cusip, par_value=par_value, annual_coupon_rate=annual_coupon_rate, **kwargs)
+    def _disc(rate: float, t: float) -> float:
+        """Continuously compounding discount factor"""
+        return np.exp(-rate * t)
