@@ -2,7 +2,8 @@ import numpy as np
 
 
 class FixedBond:
-    """ Vanilla non-callable fixed rate bonds."""
+    """Vanilla non-callable fixed rate bonds."""
+
     def __init__(self, face: float, coupon: float, maturity: float, freq: int = 2):
         self.face = face
         self.coupon = coupon
