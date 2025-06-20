@@ -31,3 +31,11 @@ class FixedBond:
     def _disc(rate: float, t: float) -> float:
         """Continuously compounding discount factor."""
         return np.exp(-rate * t)
+
+    def age(self, n: int | None = 1) -> None:
+        """Reduce the bond's remaining maturity by `n` years."""
+        if n is None:
+            n = 1
+        if n > self.maturity:
+            raise ValueError("You cannot age beyond maturity date.")
+        self.maturity -= n
