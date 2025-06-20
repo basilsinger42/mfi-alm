@@ -1,11 +1,10 @@
-from .annuities import AnnuityDue
 from .liability import Liability
-from .mortality import MortalityTable
+from .mortality import MortalityModel
 from .insurance import WholeLifeInsurance
 
+
 __all__ = [
-    "AnnuityDue",
     "Liability",
-    "MortalityTable",
-    "insurance"
+    "MortalityModel",
+    "WholeLifeInsurance",
 ]

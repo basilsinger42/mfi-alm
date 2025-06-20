@@ -1,4 +1,5 @@
 from dataclasses import dataclass
+
 """
 TODO:
 Create a general asset class that contains the following attributes:
@@ -26,6 +27,8 @@ scale
 sell
 buy
 """
+
+
 @dataclass
 class Asset:
     market_price: float
