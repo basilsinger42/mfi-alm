@@ -47,3 +47,7 @@ class MortalityTable:
         probs /= probs.sum()
         rng = np.random.default_rng(seed)
         return rng.choice(len(probs), p=probs)
+
+    def copy(self) -> "MortalityTable":
+        df_copy = self.df.reset_index()[["x", "lx"]].copy()
+        return MortalityTable(df_mortality=df_copy)
