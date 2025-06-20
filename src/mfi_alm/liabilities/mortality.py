@@ -1,8 +1,10 @@
-import numpy as np
+from typing import Self
+
 import pandas as pd
+import numpy as np
 
 
-class MortalityTable:
+class MortalityModel:
     def __init__(self, df_mortality: pd.DataFrame):
         if not {"x", "lx"}.issubset(df_mortality.columns):
             raise ValueError("Mortality table must contain 'x' and 'lx' columns.")
@@ -34,4 +36,9 @@ class MortalityTable:
         probs = self.discrete_remaining_mortality_probs(x, t_horizon)
         probs /= probs.sum()
         rng = np.random.default_rng(seed)
+
         return rng.choice(len(probs), p=probs)
+
+    def copy(self) -> Self:
+        df_mortality = self.df.reset_index()[["x", "lx"]].copy()
+        return MortalityModel(df_mortality=df_mortality)
