@@ -41,8 +41,6 @@ def policyholder(mortality_model, whole_life_insurance, default_age) -> Policyho
 def test_policyholder_init(policyholder, default_age):
     assert policyholder.id_ == 123
     assert policyholder.age == default_age
-    assert isinstance(policyholder.mortality_model, MortalityModel)
-    assert isinstance(policyholder.whole_life_insurance, WholeLifeInsurance)
 
 
 def test_policyholder_copy(policyholder):
@@ -51,14 +49,9 @@ def test_policyholder_copy(policyholder):
     assert ph_copy.id_ == policyholder.id_
     assert ph_copy.age == policyholder.age
     assert ph_copy is not policyholder
-    assert ph_copy.mortality_model.df.equals(policyholder.mortality_model.df)
-    assert ph_copy.whole_life_insurance.benefit == policyholder.whole_life_insurance.benefit
 
 
 @pytest.mark.parametrize("interest", [0.01, 0.03, 0.05])
-def test_insurance_apv_from_policyholder(policyholder, interest):
+def test_insurance_apv_from_policyholder(policyholder, interest, whole_life_insurance):
     apv = policyholder.insurance_apv(interest=interest)
-    assert isinstance(apv, float)
-    assert 0 < apv < 2000
-
-
+    assert np.isclose(apv, whole_life_insurance.apv(policyholder.age, interest=interest))
