@@ -32,6 +32,7 @@ def test_price_below_par(sample_bond: FixedBond):
     price = sample_bond.price(ytm=0.06)
     assert price < 1000
 
+
 # Age() test
 def test_age_normal_case():
     """Test aging the bond by a valid number of years."""

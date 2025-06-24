@@ -1,12 +1,6 @@
 from typing import Self
-<<<<<<< HEAD
 
 from mfi_alm.liabilities.mortality import MortalityModel
-
-=======
-
-from mfi_alm.liabilities.mortality import MortalityModel
->>>>>>> 21_policyholder
 
 class WholeLifeInsurance:
     def __init__(self, mortality_model: MortalityModel, benefit: float | None = 1.0) -> None:
@@ -21,8 +15,4 @@ class WholeLifeInsurance:
         Compute actuarial present value of a whole life insurance benefit payable at end of year of death.
         """
         v = 1 / (1 + interest)
-<<<<<<< HEAD
         return self.benefit * sum(v ** (k + 1) * self.mortality_model.prob_Kx_equals_k(k, x) for k in range(max_age))
-=======
-        return self.benefit * sum(v ** (k + 1) * self.mortality_model.prob_Kx_equals_k(k, x) for k in range(max_age))
->>>>>>> 21_policyholder
