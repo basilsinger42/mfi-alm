@@ -2,7 +2,6 @@ from typing import Self
 
 from mfi_alm.liabilities.mortality import MortalityModel
 
-
 class WholeLifeInsurance:
     def __init__(self, mortality_model: MortalityModel, benefit: float | None = 1.0) -> None:
         self.mortality_model = mortality_model.copy()

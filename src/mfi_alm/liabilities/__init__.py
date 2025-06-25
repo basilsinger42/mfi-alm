@@ -2,6 +2,7 @@ from .liability import Liability
 from .mortality import MortalityModel
 from .insurance import WholeLifeInsurance
 from .policyholder import Policyholder
+from .LiabilityPortfolio import LiabilityPortfolio
 
 
 __all__ = [
@@ -9,4 +10,5 @@ __all__ = [
     "MortalityModel",
     "WholeLifeInsurance",
     "Policyholder",
+    "LiabilityPortfolio"
 ]
