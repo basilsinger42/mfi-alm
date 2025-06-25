@@ -18,7 +18,7 @@ def test_market_value_at_par():
 
 
 def test_copy_asset():
-    original_bond = FixedBond(face=1000, coupon=0.05, maturity=10, freq=2)  # 填入实际参数
+    original_bond = FixedBond(face=1000, coupon=0.05, maturity=10, freq=2)  
     original_ytm = 0.05
     original_asset = Asset(original_bond, original_ytm)
 
