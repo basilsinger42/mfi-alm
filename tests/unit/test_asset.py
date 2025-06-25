@@ -1,6 +1,6 @@
 import numpy as np
 
-from mfi_alm.assets.asset import Asset, FixedBond, AssetPortfolio
+from mfi_alm.assets.asset import Asset, AssetPortfolio, FixedBond
 
 
 def test_market_value_normal_case():
@@ -18,7 +18,6 @@ def test_market_value_at_par():
 
 
 def test_copy_asset():
-
     original_bond = FixedBond(face=1000, coupon=0.05, maturity=10, freq=2)  # 填入实际参数
     original_ytm = 0.05
     original_asset = Asset(original_bond, original_ytm)
@@ -30,13 +29,11 @@ def test_copy_asset():
 
 
 def test_asset():
-
     bond1 = FixedBond(face=1000, coupon=0.05, maturity=10)
     bond2 = FixedBond(face=500, coupon=0.03, maturity=5)
     asset1 = Asset(fixed_bond=bond1, ytm=0.04)
     asset2 = Asset(fixed_bond=bond2, ytm=0.03)
     portfolio = AssetPortfolio(assets=[asset1, asset2], ytm=0.035)
-
     assert len(portfolio.assets) == 2
     assert portfolio.ytm == 0.035
 

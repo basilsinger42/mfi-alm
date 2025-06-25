@@ -19,16 +19,13 @@ class Asset:
 
 
 class AssetPortfolio:
-    """管理一组固定收益资产的投资组合"""
 
     def __init__(self, assets: list[Asset], ytm: float):
         self.assets = [a.copy() for a in assets]
         self.ytm = ytm
 
     def market_value(self) -> float:
-        """计算组合总市值"""
         return np.sum([a.market_value() for a in self.assets])
 
     def copy(self) -> Self:
-        """创建组合的深拷贝"""
         return AssetPortfolio(assets=deepcopy(self.assets), ytm=self.ytm)

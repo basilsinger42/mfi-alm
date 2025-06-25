@@ -1,5 +1,6 @@
-import numpy as np
 from typing import Self
+
+import numpy as np
 
 
 class FixedBond:
@@ -42,5 +43,4 @@ class FixedBond:
         self.maturity -= n
 
     def copy(self) -> Self:
-
         return FixedBond(face=self.face, coupon=self.coupon, maturity=self.maturity, freq=self.freq)
