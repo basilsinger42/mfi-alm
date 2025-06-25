@@ -11,7 +11,7 @@ class WholeLifeInsurance:
     def copy(self) -> Self:
         return WholeLifeInsurance(mortality_model=self.mortality_model.copy(), benefit=self.benefit)
 
-    def apv(self, x: float, interest: float = 0.03, max_age: int = 120) -> float:
+    def apv(self, x: float, interest: float, max_age: int = 120) -> float:
         """
         Compute actuarial present value of a whole life insurance benefit payable at end of year of death.
         """

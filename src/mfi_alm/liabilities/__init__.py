@@ -1,10 +1,11 @@
-from .mortality import MortalityModel
 from .insurance import WholeLifeInsurance
+from .liability_portfolio import LiabilityPortfolio
+from .mortality import MortalityModel
 from .policyholder import Policyholder
 
-
 __all__ = [
-    "MortalityModel",
     "WholeLifeInsurance",
+    "LiabilityPortfolio",
+    "MortalityModel",
     "Policyholder",
 ]

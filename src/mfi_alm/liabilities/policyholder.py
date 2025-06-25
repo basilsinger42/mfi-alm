@@ -1,6 +1,7 @@
 from typing import Self
 
-from mfi_alm.liabilities import MortalityModel, WholeLifeInsurance
+from mfi_alm.liabilities.insurance import WholeLifeInsurance
+from mfi_alm.liabilities.mortality import MortalityModel
 
 
 class Policyholder:
@@ -24,5 +25,5 @@ class Policyholder:
             whole_life_insurance=self.whole_life_insurance.copy(),
         )
 
-    def insurance_apv(self, interest: float | None = 0.03) -> float:
+    def insurance_apv(self, interest: float) -> float:
         return self.whole_life_insurance.apv(self.age, interest)
