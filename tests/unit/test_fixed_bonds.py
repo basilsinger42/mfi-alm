@@ -53,3 +53,14 @@ def test_age_beyond_maturity():
     bond = FixedBond(face=1000, coupon=0.05, maturity=3.0)
     with pytest.raises(ValueError, match="You cannot age beyond maturity date."):
         bond.age(4)
+
+
+def test_copy():
+    original = FixedBond(face=1000, coupon=0.05, maturity=10, freq=2)
+
+    copied = original.copy()
+
+    assert original.face == copied.face
+    assert original.coupon == copied.coupon
+    assert original.maturity == copied.maturity
+    assert original.freq == copied.freq

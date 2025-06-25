@@ -1,4 +1,6 @@
-from .bonds import FixedBond
+from typing import Self
+
+from mfi_alm.assets.bonds import FixedBond
 
 
 class Asset:
@@ -10,3 +12,6 @@ class Asset:
 
     def market_value(self) -> float:
         return self.fixed_bond.price(ytm=self.ytm)
+
+    def copy(self) -> Self:
+        return Asset(fixed_bond=self.fixed_bond.copy(), ytm=self.ytm)

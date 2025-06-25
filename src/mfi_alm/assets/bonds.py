@@ -1,3 +1,5 @@
+from typing import Self
+
 import numpy as np
 
 
@@ -39,3 +41,6 @@ class FixedBond:
         if n > self.maturity:
             raise ValueError("You cannot age beyond maturity date.")
         self.maturity -= n
+
+    def copy(self) -> Self:
+        return FixedBond(face=self.face, coupon=self.coupon, maturity=self.maturity, freq=self.freq)
