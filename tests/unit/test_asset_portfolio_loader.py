@@ -1,7 +1,8 @@
 import csv
 import os
-import pytest
 import tempfile
+
+import pytest
 
 from mfi_alm.assets.asset_portfolio_loader import AssetPortfolioLoader
 
@@ -20,14 +21,14 @@ def valid_csv_file():
 
     yield file_path
 
-    # tear down
+    # tear-down.
     os.remove(file_path)
     os.rmdir(temp_dir)
 
 
 @pytest.fixture
 def invalid_csv_file():
-    # set up
+    # setup.
     temp_dir = tempfile.mkdtemp()
     file_path = os.path.join(temp_dir, "invalid_assets.csv")
 
@@ -38,7 +39,7 @@ def invalid_csv_file():
 
     yield file_path
 
-    # tear down
+    # tear-down.
     os.remove(file_path)
     os.rmdir(temp_dir)
 
@@ -49,7 +50,6 @@ def test_load_valid_csv(valid_csv_file):
     assert len(portfolio.assets) == 2
     assert portfolio.ytm == 0.045
 
-    # asset1
     asset1 = portfolio.assets[0]
     assert asset1.fixed_bond.face == 1000
     assert asset1.fixed_bond.coupon == 0.05
@@ -67,7 +67,7 @@ def test_invalid_data(invalid_csv_file):
 
 
 def test_missing_columns():
-    # set up
+    # setup.
     temp_dir = tempfile.mkdtemp()
     file_path = os.path.join(temp_dir, "missing_col.csv")
 
@@ -80,7 +80,8 @@ def test_missing_columns():
         with pytest.raises(ValueError) as excinfo:
             AssetPortfolioLoader.load_from_csv(file_path)
         assert "missing required columns" in str(excinfo.value).lower()
+
     finally:
-        # tear down
+        # tear-down.
         os.remove(file_path)
         os.rmdir(temp_dir)
