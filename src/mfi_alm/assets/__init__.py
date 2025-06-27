@@ -1,9 +1,9 @@
 from .asset import Asset
-from .asset_portfolio import AssetPortfolio
 from .bonds import FixedBond
+from .asset_portfolio import AssetPortfolio
 
 __all__ = [
     "Asset",
-    "AssetPortfolio",
     "FixedBond",
+    "AssetPortfolio"
 ]
