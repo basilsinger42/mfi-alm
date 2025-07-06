@@ -1,38 +1,59 @@
-from pathlib import Path
+from time import perf_counter
 
 import os
-import sys
 
+from mfi_alm.assets.asset_portfolio import AssetPortfolio
 from mfi_alm.assets.asset_portfolio_loader import AssetPortfolioLoader
+from mfi_alm.liabilities.liability_portfolio import LiabilityPortfolio
 from mfi_alm.liabilities.liability_portfolio_loader import load_liability_portfolio
+from mfi_alm.utils import get_time
 
-os.getcwd()
-sys.path.append("../src/mfi_alm/assets")
-sys.path.append("../src/mfi_alm/liabilities")
 
-print(os.getcwd())
+CONFIG = {
+    "asset_path": os.path.join("data", "asset_tape.csv"),
+    "liability_path": os.path.join("data", "policyholder_tape.csv"),
+    "liability_interest": 0.03,
+    "initial_capital": 1_000_000,
+}
 
-current_script_path = Path(__file__).absolute()
 
-project_root = current_script_path.parent.parent.parent.parent
+def check_paths(config: dict[str, float | str]) -> None:
+    for k, v in config.items():
+        if "path" in k:
+            if not os.path.exists(v):
+                raise ValueError(f"path={k} not found.")
 
-os.chdir(project_root)
 
-project_root = Path(os.getcwd())
-experimental_dir = project_root / "experimental"
+def step0_load_asset_and_liability_tapes(
+    config: dict[str, float | str], step: int
+) -> tuple[AssetPortfolio, LiabilityPortfolio]:
+    tic = perf_counter()
+    print(f"Step{step}: Loading asset & liability tapes.")
+    check_paths(config=config)
+    interest = config["liability_interest"]
+    asset_portfolio = AssetPortfolioLoader.load_from_csv(config["asset_path"])
+    liability_portfolio = load_liability_portfolio(filepath=config["liability_path"], interest=interest)
 
-os.chdir(experimental_dir)
+    print(f"Successfully loaded portfolio with {len(asset_portfolio.assets)} assets.")
+    print(f"Liability portfolio total APV: {liability_portfolio.insurance_apv():,.2f}")
+    toc = perf_counter()
+    t, units = get_time(t=toc - tic, dp=2)
+    print(f"Time taken (loading asset & liability tapes) = {t} {units}.")
+    return asset_portfolio, liability_portfolio
 
-print(f"Current work path: {os.getcwd()}")
 
 if __name__ == "__main__":
-    try:
-        portfolio = AssetPortfolioLoader.load_from_csv("asset_tape1.csv")
-        print(f"Successfully loaded portfolio with {len(portfolio.assets)} assets")
-        print(f"Portfolio market value: {portfolio.market_value():,.2f}")
+    print("*" * 100)
+    print("*" * 100)
+    print("Starting programme.")
+    tic_overall = perf_counter()
 
-        liability_portfolio = load_liability_portfolio(filepath="policyholder_tape.csv", interest=0.03)
-        print(f"Loaded {len(liability_portfolio.policyholders)} policyholders")
-        print(f"Liability portfolio total APV: {liability_portfolio.insurance_apv():,.2f}")
-    except Exception as e:
-        print(f"Error loading liability portfolio: {str(e)}")
+    asset_portfolio, liability_portfolio = step0_load_asset_and_liability_tapes(config=CONFIG, step=0)
+    initial_capital = CONFIG["initial_capital"]
+
+    toc_overall = perf_counter()
+    t, units = get_time(t=toc_overall - tic_overall, dp=2)
+    print(f"\nTime taken (overall) = {t} {units}.")
+    print("Ending programme.")
+    print("*" * 100)
+    print("*" * 100)
