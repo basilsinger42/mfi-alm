@@ -1,5 +1,6 @@
-import pandas as pd
 import numpy as np
+import pandas as pd
+
 
 # Set random seed for reproducibility
 np.random.seed(42)
@@ -13,12 +14,9 @@ benefits = np.random.randint(100000, 2000001, size=num_policyholders)  # Benefit
 mu_values = np.random.uniform(0.03, 0.08, size=num_policyholders)  # mu between 0.03 and 0.08
 
 # Create DataFrame
-policyholder_df = pd.DataFrame({
-    "policyholder_id": np.arange(1, num_policyholders + 1),
-    "age": ages,
-    "benefit": benefits,
-    "mu": mu_values
-})
+policyholder_df = pd.DataFrame(
+    {"policyholder_id": np.arange(1, num_policyholders + 1), "age": ages, "benefit": benefits, "mu": mu_values}
+)
 
 # Save to CSV
 policyholder_df.to_csv("policyholder_tape.csv", index=False)
