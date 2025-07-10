@@ -1,0 +1,12 @@
+{
+  "asset_path": "data/asset_tape.csv",
+  "liability_path": "data/policyholder_tape.csv",
+  "liability_interest": 0.03,
+  "initial_capital": 1000000,
+  "scenarios": [
+    { "name": "base", "ytm_factor": 1.0, "mortality_factor": 1.0 },
+    { "name": "health_crisis", "ytm_factor": 1.0, "mortality_factor": 1.25 },
+    { "name": "crazy_markets", "ytm_factor": 0.75, "mortality_factor": 1.0 },
+    { "name": "double_whammy", "ytm_factor": 0.75, "mortality_factor": 1.25 }
+  ]
+}
