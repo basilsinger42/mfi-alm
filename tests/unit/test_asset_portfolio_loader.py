@@ -2,6 +2,8 @@ import csv
 import os
 import tempfile
 
+from pathlib import Path
+
 import pytest
 
 from mfi_alm.assets.asset_portfolio_loader import AssetPortfolioLoader
@@ -88,8 +90,10 @@ def test_missing_columns():
 
 
 # scenario test
+
+
 def test_load_all_scenarios():
-    config_path = r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json"
+    config_path = Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
     result = AssetPortfolioLoader.load_from_scenario(str(config_path))
 
     assert isinstance(result, dict)
@@ -100,7 +104,7 @@ def test_load_all_scenarios():
 
 
 def test_load_single_scenario():
-    config_path = r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json"
+    config_path = Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
     result = AssetPortfolioLoader.load_from_scenario(str(config_path), scenario_name="health_crisis")
 
     assert len(result) == 1
@@ -109,8 +113,7 @@ def test_load_single_scenario():
 
 
 def test_ytm_adjustment():
-    """验证YTM调整因子是否正确应用"""
-    config_path = r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json"
+    config_path = Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
     results = AssetPortfolioLoader.load_from_scenario(str(config_path))
 
     base_ytm = results["base"].ytm

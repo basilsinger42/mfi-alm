@@ -4,6 +4,8 @@ import tempfile
 import pandas as pd
 import pytest
 
+from pathlib import Path
+
 from mfi_alm.liabilities.liability_portfolio import LiabilityPortfolio
 from mfi_alm.liabilities.liability_portfolio_loader import load_liability_portfolio, load_liability_scenarios
 
@@ -27,7 +29,9 @@ def test_load_liability_portfolio(sample_csv_file):
 
 
 def test_load_success():
-    scenarios = load_liability_scenarios(r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json")
+    scenarios = load_liability_scenarios(
+        Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
+    )
 
     assert len(scenarios) == 4
     assert "base" in scenarios
@@ -37,7 +41,9 @@ def test_load_success():
 
 def test_load_single_scenario(tmp_path):
 
-    scenarios = load_liability_scenarios(r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json", "health_crisis")
+    scenarios = load_liability_scenarios(
+        Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json", "health_crisis"
+    )
 
     assert len(scenarios) == 1
     assert "health_crisis" in scenarios
