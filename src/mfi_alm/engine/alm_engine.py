@@ -8,14 +8,18 @@ from mfi_alm.liabilities.liability_portfolio import LiabilityPortfolio
 from mfi_alm.liabilities.liability_portfolio_loader import load_liability_portfolio
 from mfi_alm.utils import get_time
 
-
 CONFIG = {
     "asset_path": os.path.join("data", "asset_tape.csv"),
     "liability_path": os.path.join("data", "policyholder_tape.csv"),
     "liability_interest": 0.03,
     "initial_capital": 1_000_000,
+    "scenarios": [
+        {"name": "base", "ytm_factor": 1.0, "mortality_factor": 1.0},
+        {"name": "health_crisis", "ytm_factor": 1.0, "mortality_factor": 1.25},
+        {"name": "crazy_markets", "ytm_factor": 0.75, "mortality_factor": 1.0},
+        {"name": "double_whammy", "ytm_factor": 0.75, "mortality_factor": 1.25}
+    ]
 }
-
 
 def check_paths(config: dict[str, float | str]) -> None:
     for k, v in config.items():
@@ -57,3 +61,4 @@ if __name__ == "__main__":
     print("Ending programme.")
     print("*" * 100)
     print("*" * 100)
+
