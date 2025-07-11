@@ -19,22 +19,26 @@ def create_mortality_model(mu: float, mortality_factor: float = 1.0) -> Mortalit
 
 
 def load_liability_portfolio(
-    filepath: str = "data/policyholder_tape.csv", interest: float = 0.03,mortality_factor: float = 1.0) -> LiabilityPortfolio:
+    filepath: str = "data/policyholder_tape.csv", interest: float = 0.03, mortality_factor: float = 1.0
+) -> LiabilityPortfolio:
     df = pd.read_csv(filepath)
     policyholders = []
 
     for _, row in df.iterrows():
-        mortality_model = create_mortality_model(row["mu"],mortality_factor)
+        mortality_model = create_mortality_model(row["mu"], mortality_factor)
         insurance = WholeLifeInsurance(mortality_model, benefit=row["benefit"])
         policyholder = Policyholder(
-            id_=int(row["policyholder_id"]), age=float(row["age"]), mortality_model=mortality_model, whole_life_insurance=insurance
+            id_=int(row["policyholder_id"]),
+            age=float(row["age"]),
+            mortality_model=mortality_model,
+            whole_life_insurance=insurance,
         )
         policyholders.append(policyholder)
 
     return LiabilityPortfolio(policyholders, interest=interest)
 
 
-def load_liability_scenarios(config_path: str,scenario_name: Optional[str] = None) -> dict[str, LiabilityPortfolio]:
+def load_liability_scenarios(config_path: str, scenario_name: Optional[str] = None) -> dict[str, LiabilityPortfolio]:
 
     config_path = Path(config_path).resolve()
     if not config_path.exists():
@@ -57,12 +61,13 @@ def load_liability_scenarios(config_path: str,scenario_name: Optional[str] = Non
         portfolio = load_liability_portfolio(
             filepath=str(liability_path),
             interest=config["liability_interest"],
-            mortality_factor=scenario["mortality_factor"]
+            mortality_factor=scenario["mortality_factor"],
         )
 
         results[scenario["name"]] = portfolio
 
     return results
+
 
 # Test
 if __name__ == "__main__":
@@ -76,12 +81,16 @@ if __name__ == "__main__":
 
         for name, portfolio in scenarios.items():
             print(
-                f"  {name}: {len(portfolio.policyholders)}policies，Adjusted mortality rate: {scenarios[name].policyholders[0].mortality_model.df['lx'][1] / 1000:.3f}")
+                f"  {name}: {len(portfolio.policyholders)}policies，"
+                f"Adjusted mortality rate: {scenarios[name].policyholders[0].mortality_model.df['lx'][1] / 1000:.3f}"
+            )
 
         print("\nLoading health_crisis...")
-        crisis = load_liability_scenarios(config_path,"health_crisis")
+        crisis = load_liability_scenarios(config_path, "health_crisis")
         print(
-            f"  Adjusted mortality rate: {crisis['health_crisis'].policyholders[0].mortality_model.df['lx'][1] / 1000:.3f}")
+            f"  Adjusted mortality rate: "
+            f"{crisis['health_crisis'].policyholders[0].mortality_model.df['lx'][1] / 1000:.3f}"
+        )
 
     except Exception as e:
         print(f"\n[error] {type(e).__name__}: {str(e)}")

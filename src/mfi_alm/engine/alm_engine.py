@@ -17,9 +17,10 @@ CONFIG = {
         {"name": "base", "ytm_factor": 1.0, "mortality_factor": 1.0},
         {"name": "health_crisis", "ytm_factor": 1.0, "mortality_factor": 1.25},
         {"name": "crazy_markets", "ytm_factor": 0.75, "mortality_factor": 1.0},
-        {"name": "double_whammy", "ytm_factor": 0.75, "mortality_factor": 1.25}
-    ]
+        {"name": "double_whammy", "ytm_factor": 0.75, "mortality_factor": 1.25},
+    ],
 }
+
 
 def check_paths(config: dict[str, float | str]) -> None:
     for k, v in config.items():
@@ -61,4 +62,3 @@ if __name__ == "__main__":
     print("Ending programme.")
     print("*" * 100)
     print("*" * 100)
-

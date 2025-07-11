@@ -25,6 +25,7 @@ def test_load_liability_portfolio(sample_csv_file):
     apv = portfolio.insurance_apv()
     assert isinstance(apv, float)
 
+
 def test_load_success():
     scenarios = load_liability_scenarios(r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json")
 
@@ -33,9 +34,10 @@ def test_load_success():
     assert "health_crisis" in scenarios
     assert scenarios["base"].policyholders[0].age == 58
 
+
 def test_load_single_scenario(tmp_path):
 
-    scenarios = load_liability_scenarios(r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json","health_crisis")
+    scenarios = load_liability_scenarios(r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json", "health_crisis")
 
     assert len(scenarios) == 1
     assert "health_crisis" in scenarios

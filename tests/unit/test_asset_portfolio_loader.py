@@ -86,6 +86,7 @@ def test_missing_columns():
         os.remove(file_path)
         os.rmdir(temp_dir)
 
+
 # scenario test
 def test_load_all_scenarios():
     config_path = r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json"
@@ -97,13 +98,15 @@ def test_load_all_scenarios():
     for scen in result.values():
         assert len(scen.assets) == 8
 
+
 def test_load_single_scenario():
     config_path = r"C:\Users\admin\mfi-alm\src\mfi_alm\engine\config.json"
-    result = AssetPortfolioLoader.load_from_scenario(str(config_path),scenario_name="health_crisis")
+    result = AssetPortfolioLoader.load_from_scenario(str(config_path), scenario_name="health_crisis")
 
     assert len(result) == 1
     assert "health_crisis" in result
     assert result["health_crisis"].ytm == 0.04
+
 
 def test_ytm_adjustment():
     """验证YTM调整因子是否正确应用"""
@@ -115,6 +118,6 @@ def test_ytm_adjustment():
 
     assert results["health_crisis"].ytm == 0.04
 
-    assert results["crazy_markets"].ytm == 0.04*0.75
+    assert results["crazy_markets"].ytm == 0.04 * 0.75
 
-    assert results["double_whammy"].ytm == 0.04*0.75
+    assert results["double_whammy"].ytm == 0.04 * 0.75

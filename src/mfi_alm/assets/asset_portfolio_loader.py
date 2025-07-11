@@ -69,7 +69,7 @@ class AssetPortfolioLoader:
                 f"Asset file not found: {asset_path}\n"
                 f"Project root: {project_root}\n"
                 f"Config path: {scenario_path}"
-        )
+            )
 
         base_portfolio = AssetPortfolioLoader.load_from_csv(str(asset_path))
 
@@ -82,21 +82,14 @@ class AssetPortfolioLoader:
             total_ytm = 0.0
             for asset in base_portfolio.assets:
                 adjusted_ytm = asset.ytm * scenario["ytm_factor"]
-                adjusted_asset = Asset(
-                    fixed_bond=asset.fixed_bond,
-                    ytm=adjusted_ytm
-                )
+                adjusted_asset = Asset(fixed_bond=asset.fixed_bond, ytm=adjusted_ytm)
                 adjusted_assets.append(adjusted_asset)
                 total_ytm += adjusted_ytm
 
             avg_ytm = total_ytm / len(adjusted_assets) if adjusted_assets else 0
-            results[scenario["name"]] = AssetPortfolio(
-                assets=adjusted_assets,
-                ytm=avg_ytm
-            )
+            results[scenario["name"]] = AssetPortfolio(assets=adjusted_assets, ytm=avg_ytm)
 
         return results
-
 
 
 # Test if loader works
@@ -126,10 +119,7 @@ if __name__ == "__main__":
             print(f"  {name}: {len(scen.assets)}asset, YTM: {scen.ytm:.2%}")
 
         print("\n[scenario test] Only load health_crisis...")
-        crisis = AssetPortfolioLoader.load_from_scenario(
-            str(config_path),
-            scenario_name="health_crisis"
-        )
+        crisis = AssetPortfolioLoader.load_from_scenario(str(config_path), scenario_name="health_crisis")
         print(f"  health_crisis YTM: {crisis['health_crisis'].ytm:.2%}")
 
     except Exception as e:
