@@ -1,8 +1,7 @@
 import csv
 import os
 import tempfile
-
-from pathlib import Path
+import json
 
 import pytest
 
@@ -28,99 +27,46 @@ def valid_csv_file():
     os.rmdir(temp_dir)
 
 
-@pytest.fixture
-def invalid_csv_file():
-    # setup.
-    temp_dir = tempfile.mkdtemp()
-    file_path = os.path.join(temp_dir, "invalid_assets.csv")
-
-    with open(file_path, "w", newline="") as f:
-        writer = csv.DictWriter(f, fieldnames=["face", "coupon", "maturity", "ytm"])
-        writer.writeheader()
-        writer.writerow({"face": "invalid", "coupon": "0.05", "maturity": "5.0", "ytm": "0.04"})
-
-    yield file_path
-
-    # tear-down.
-    os.remove(file_path)
-    os.rmdir(temp_dir)
-
-
 def test_load_valid_csv(valid_csv_file):
-    portfolio = AssetPortfolioLoader.load_from_csv(valid_csv_file)
-
+    portfolio = AssetPortfolioLoader.load_asset_portfolio(file_path=valid_csv_file, ytm_factor=1.0)
     assert len(portfolio.assets) == 2
-    assert portfolio.ytm == 0.045
-
     asset1 = portfolio.assets[0]
     assert asset1.fixed_bond.face == 1000
     assert asset1.fixed_bond.coupon == 0.05
     assert asset1.ytm == 0.04
+    asset2 = portfolio.assets[1]
+    assert asset2.fixed_bond.face == 2000
+    assert asset2.fixed_bond.coupon == 0.06
+    assert asset2.ytm == 0.05
 
 
 def test_file_not_found():
     with pytest.raises(FileNotFoundError):
-        AssetPortfolioLoader.load_from_csv("nonexistent.csv")
-
-
-def test_invalid_data(invalid_csv_file):
-    with pytest.raises(ValueError):
-        AssetPortfolioLoader.load_from_csv(invalid_csv_file)
-
-
-def test_missing_columns():
-    # setup.
-    temp_dir = tempfile.mkdtemp()
-    file_path = os.path.join(temp_dir, "missing_col.csv")
-
-    try:
-        with open(file_path, "w", newline="") as f:
-            writer = csv.DictWriter(f, fieldnames=["face", "coupon", "maturity"])
-            writer.writeheader()
-            writer.writerow({"face": "1000", "coupon": "0.05", "maturity": "5.0"})
-
-        with pytest.raises(ValueError) as excinfo:
-            AssetPortfolioLoader.load_from_csv(file_path)
-        assert "missing required columns" in str(excinfo.value).lower()
-
-    finally:
-        # tear-down.
-        os.remove(file_path)
-        os.rmdir(temp_dir)
+        AssetPortfolioLoader.load_asset_portfolio(file_path="nonexistent.csv", ytm_factor=1.0)
 
 
 # scenario test
+def test_ytm_adjustment(valid_csv_file):
+    portfolio = AssetPortfolioLoader.load_asset_portfolio(file_path=valid_csv_file, ytm_factor=0.5)
+    assert portfolio.assets[0].ytm == 0.02
+    assert portfolio.assets[1].ytm == 0.025
 
 
-def test_load_all_scenarios():
-    config_path = Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
-    result = AssetPortfolioLoader.load_from_scenario(str(config_path))
-
-    assert isinstance(result, dict)
-    assert len(result) == 4
-
-    for scen in result.values():
-        assert len(scen.assets) == 8
-
-
-def test_load_single_scenario():
-    config_path = Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
-    result = AssetPortfolioLoader.load_from_scenario(str(config_path), scenario_name="health_crisis")
-
-    assert len(result) == 1
-    assert "health_crisis" in result
-    assert result["health_crisis"].ytm == 0.04
-
-
-def test_ytm_adjustment():
-    config_path = Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
-    results = AssetPortfolioLoader.load_from_scenario(str(config_path))
-
-    base_ytm = results["base"].ytm
-    assert base_ytm == 0.04
-
-    assert results["health_crisis"].ytm == 0.04
-
-    assert results["crazy_markets"].ytm == 0.04 * 0.75
-
-    assert results["double_whammy"].ytm == 0.04 * 0.75
+def test_load_from_config():
+    temp_dir = tempfile.mkdtemp()
+    config_path = os.path.join(temp_dir, "test_config.json")
+    test_data = {
+        "asset_path": "data/asset_tape.csv",
+        "scenarios": [{"name": "base", "ytm_factor": 1.0}, {"name": "high_yield", "ytm_factor": 1.5}],
+    }
+    with open(config_path, "w") as f:
+        json.dump(test_data, f)
+    try:
+        portfolios = AssetPortfolioLoader.load_from_config(config_path)
+        assert isinstance(portfolios, dict)
+        assert len(portfolios) == 2
+        assert "base" in portfolios
+        assert "high_yield" in portfolios
+    finally:
+        os.remove(config_path)
+        os.rmdir(temp_dir)

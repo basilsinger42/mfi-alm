@@ -4,10 +4,8 @@ import tempfile
 import pandas as pd
 import pytest
 
-from pathlib import Path
-
 from mfi_alm.liabilities.liability_portfolio import LiabilityPortfolio
-from mfi_alm.liabilities.liability_portfolio_loader import load_liability_portfolio, load_liability_scenarios
+from mfi_alm.liabilities.liability_portfolio_loader import load_liability_portfolio
 
 
 @pytest.fixture
@@ -21,29 +19,17 @@ def sample_csv_file():
 
 
 def test_load_liability_portfolio(sample_csv_file):
-    interest = 0.03
-    portfolio = load_liability_portfolio(sample_csv_file, interest=interest)
+    portfolio = load_liability_portfolio(filepath=sample_csv_file, mortality_factor=1.0, interest=0.03)
     assert isinstance(portfolio, LiabilityPortfolio)
-    apv = portfolio.insurance_apv()
-    assert isinstance(apv, float)
+    assert len(portfolio.policyholders) == 2
+    assert portfolio.policyholders[0].age == 30
+    assert portfolio.policyholders[1].whole_life_insurance.benefit == 1500
+    assert portfolio.interest == 0.03
 
 
-def test_load_success():
-    scenarios = load_liability_scenarios(
-        Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json"
-    )
-
-    assert len(scenarios) == 4
-    assert "base" in scenarios
-    assert "health_crisis" in scenarios
-    assert scenarios["base"].policyholders[0].age == 58
-
-
-def test_load_single_scenario(tmp_path):
-
-    scenarios = load_liability_scenarios(
-        Path(__file__).parent.parent.parent / "src" / "mfi_alm" / "engine" / "config.json", "health_crisis"
-    )
-
-    assert len(scenarios) == 1
-    assert "health_crisis" in scenarios
+def test_mortality_factor_application(sample_csv_file):
+    base_portfolio = load_liability_portfolio(filepath=sample_csv_file, mortality_factor=1.0, interest=0.03)
+    crisis_portfolio = load_liability_portfolio(filepath=sample_csv_file, mortality_factor=1.25, interest=0.03)
+    base_qx = base_portfolio.policyholders[0].mortality_model.tqx(1, 30)
+    crisis_qx = crisis_portfolio.policyholders[0].mortality_model.tqx(1, 30)
+    assert crisis_qx == pytest.approx(base_qx * 1.25, rel=0.01)
