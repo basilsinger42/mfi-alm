@@ -10,7 +10,7 @@ from mfi_alm.liabilities.liability_portfolio import LiabilityPortfolio
 from mfi_alm.liabilities.liability_portfolio_loader import load_liability_portfolio
 from mfi_alm.utils import get_time
 
-CONFIG_PATH = "src/mfi_alm/engine/config.json"
+CONFIG_PATH = "data/config.json"
 
 
 def check_paths(config: dict[str, float | str]) -> None:
