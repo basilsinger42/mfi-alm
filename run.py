@@ -64,25 +64,28 @@ def step2_calibrate_capital(
     assets: AssetPortfolio,
     liabilities: LiabilityPortfolio,
     initial_guess: float,
+    maximum_capital: float,
     years: int,
     max_iterations: int = 30,
     tolerance: float = 1000,
 ) -> float:
     min_val = 0
-    max_val = 10 * initial_guess
+    max_val = maximum_capital
     capital = initial_guess
 
     for i in range(max_iterations):
-        capital = (min_val + max_val) / 2
         final_reserve = simulate_projection(assets.copy(), liabilities.copy(), capital, years)
         print(f"    Iter {i+1:02d}: Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}")
 
         if abs(final_reserve) < tolerance:
             break
+
         if final_reserve < 0:
             min_val = capital
         else:
             max_val = capital
+
+        capital = (min_val + max_val) / 2
 
     return capital
 
@@ -108,6 +111,8 @@ if __name__ == "__main__":
             paths=paths, scenario_data=scenario, liability_interest=config_data["liability_interest"], step=1
         )
         initial_capital = config_data["initial_capital"]
+        maximum_capital = config_data["maximum_capital"]
+
         print(f"Scenario '{scenario['name']}' loaded:")
         print(f"  - Asset MV: {asset_portfolio.market_value():,.2f}")
         print(f"  - Initial capital guess: {initial_capital:,.2f}")
@@ -117,6 +122,7 @@ if __name__ == "__main__":
             asset_portfolio,
             liability_portfolio,
             initial_guess=initial_capital,
+            maximum_capital=maximum_capital,
             years=max_years,
             max_iterations=max_iterations,
         )
