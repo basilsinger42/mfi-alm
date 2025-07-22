@@ -55,3 +55,7 @@ def test_policyholder_copy(policyholder):
 def test_insurance_apv_from_policyholder(policyholder, interest, whole_life_insurance):
     apv = policyholder.insurance_apv(interest=interest)
     assert np.isclose(apv, whole_life_insurance.apv(policyholder.age, interest=interest))
+
+
+def test_policyholder_benefit_property(policyholder, default_benefit):
+    assert policyholder.benefit == default_benefit

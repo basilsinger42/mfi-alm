@@ -34,7 +34,23 @@ def test_portfolio_initialization(policyholders, portfolio):
         assert p1 is not p2  # confirm it's a deep copy.
 
 
-def test_portfolio_insurance_apv(portfolio, policyholders):
+def test_portfolio_insurance_apv(portfolio):
     apv = portfolio.insurance_apv()
-    apv_policyholders = np.sum([p.insurance_apv(interest=0.03) for p in portfolio.policyholders])
-    assert np.isclose(apv, apv_policyholders)
+    expected_apv = np.sum([p.insurance_apv(interest=0.03) for p in portfolio.policyholders])
+    assert np.isclose(apv, expected_apv)
+
+
+def test_expected_yearly_benefit(portfolio):
+    expected = np.sum(
+        [p.whole_life_insurance.benefit * p.mortality_model.tqx(t=1, x=p.age) for p in portfolio.policyholders]
+    )
+    actual = portfolio.expected_yearly_benefit()
+    assert np.isclose(actual, expected)
+
+
+def test_age_one_year(portfolio):
+    original_ages = [p.age for p in portfolio.policyholders]
+    portfolio.age_one_year()
+    updated_ages = [p.age for p in portfolio.policyholders]
+    for orig, updated in zip(original_ages, updated_ages):
+        assert updated == orig + 1

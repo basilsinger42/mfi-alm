@@ -27,3 +27,7 @@ class Policyholder:
 
     def insurance_apv(self, interest: float) -> float:
         return self.whole_life_insurance.apv(self.age, interest)
+
+    @property
+    def benefit(self) -> float:
+        return self.whole_life_insurance.benefit
