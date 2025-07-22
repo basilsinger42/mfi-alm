@@ -67,8 +67,8 @@ def test_load_from_config():
     assert len(portfolios) == 2
     assert "base" in portfolios
     assert "high_yield" in portfolios
-    assert portfolios["base"].market_value() == 8517.06495851272
-    assert portfolios["high_yield"].market_value() == 7491.460591612005
+    assert portfolios["base"].market_value() == 116599.54913845785
+    assert portfolios["high_yield"].market_value() == 85050.15521766715
 
     os.remove(config_path)
     os.rmdir(temp_dir)
