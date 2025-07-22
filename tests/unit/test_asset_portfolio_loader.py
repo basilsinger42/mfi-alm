@@ -61,12 +61,14 @@ def test_load_from_config():
     }
     with open(config_path, "w") as f:
         json.dump(test_data, f)
-    try:
-        portfolios = AssetPortfolioLoader.load_from_config(config_path)
-        assert isinstance(portfolios, dict)
-        assert len(portfolios) == 2
-        assert "base" in portfolios
-        assert "high_yield" in portfolios
-    finally:
-        os.remove(config_path)
-        os.rmdir(temp_dir)
+
+    portfolios = AssetPortfolioLoader.load_from_config(config_path)
+    assert isinstance(portfolios, dict)
+    assert len(portfolios) == 2
+    assert "base" in portfolios
+    assert "high_yield" in portfolios
+    assert portfolios["base"].market_value() == 8517.06495851272
+    assert portfolios["high_yield"].market_value() == 7491.460591612005
+
+    os.remove(config_path)
+    os.rmdir(temp_dir)
