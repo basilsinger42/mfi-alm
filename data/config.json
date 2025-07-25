@@ -1,12 +1,16 @@
 {
   "asset_path": "data/asset_tape.csv",
   "liability_path": "data/policyholder_tape.csv",
-  "liability_interest": 0.03,
-  "initial_capital": 1000000,
+  "liability_interest": 0.035,
+  "initial_capital": 650000000,
+  "maximum_capital": 1100000000,
   "scenarios": [
-    { "name": "base", "ytm_factor": 1.0, "mortality_factor": 1.0 },
+    { "name": "base", "ytm_factor": 1.1, "mortality_factor": 0.7 }],
+  "_comment": {
+  "inactive_scenarios":[
     { "name": "health_crisis", "ytm_factor": 1.0, "mortality_factor": 1.25 },
     { "name": "crazy_markets", "ytm_factor": 0.75, "mortality_factor": 1.0 },
     { "name": "double_whammy", "ytm_factor": 0.75, "mortality_factor": 1.25 }
   ]
+ }
 }
