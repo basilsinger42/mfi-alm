@@ -15,4 +15,3 @@ class Asset:
 
     def copy(self) -> Self:
         return Asset(fixed_bond=self.fixed_bond.copy(), ytm=self.ytm)
-

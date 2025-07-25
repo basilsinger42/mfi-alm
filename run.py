@@ -77,8 +77,9 @@ def step2_calibrate_capital(
 
     for i in range(max_iterations):
         calibrated_assets.scale_to_target(capital)
-        assert abs(calibrated_assets.market_value() - capital) < 1e-6, \
-            f"market_mv({calibrated_assets.market_value():,.2f})not matched with capital({capital:,.2f})"
+        assert (
+            abs(calibrated_assets.market_value() - capital) < 1e-6
+        ), f"market_mv({calibrated_assets.market_value():,.2f})not matched with capital({capital:,.2f})"
 
         final_reserve = simulate_projection(calibrated_assets.copy(), liabilities.copy(), capital, years)
         print(f"    Iter {i+1:02d}: Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}")
