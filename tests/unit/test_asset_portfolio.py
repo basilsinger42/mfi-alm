@@ -58,4 +58,4 @@ def test_asset_portfolio_age_one_year():
     portfolio.age_one_year()
 
     assert portfolio.assets[0].fixed_bond.maturity == 9
-    assert portfolio.assets[1].fixed_bond.maturity == 0  # should not go below 0
+    assert portfolio.assets[1].fixed_bond.maturity == 0

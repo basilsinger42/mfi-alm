@@ -73,8 +73,14 @@ def step2_calibrate_capital(
     max_val = maximum_capital
     capital = initial_guess
 
+    calibrated_assets = assets.copy()
+
     for i in range(max_iterations):
-        final_reserve = simulate_projection(assets.copy(), liabilities.copy(), capital, years)
+        calibrated_assets.scale_to_target(capital)
+        assert abs(calibrated_assets.market_value() - capital) < 1e-6, \
+            f"market_mv({calibrated_assets.market_value():,.2f})not matched with capital({capital:,.2f})"
+
+        final_reserve = simulate_projection(calibrated_assets.copy(), liabilities.copy(), capital, years)
         print(f"    Iter {i+1:02d}: Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}")
 
         if abs(final_reserve) < tolerance:
@@ -115,6 +121,7 @@ if __name__ == "__main__":
 
         print(f"Scenario '{scenario['name']}' loaded:")
         print(f"  - Asset MV: {asset_portfolio.market_value():,.2f}")
+        print(f"Liability MV(APV): {liability_portfolio.insurance_apv():,.2f}")
         print(f"  - Initial capital guess: {initial_capital:,.2f}")
 
         # Step 2: Bisection search for required capital
