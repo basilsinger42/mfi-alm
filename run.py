@@ -1,8 +1,8 @@
 from time import perf_counter
 from typing import Any
-
 import os
 import json
+import csv
 
 from mfi_alm.assets.asset_portfolio import AssetPortfolio
 from mfi_alm.assets.asset_portfolio_loader import AssetPortfolioLoader
@@ -15,9 +15,8 @@ CONFIG_PATH = "data/config.json"
 
 def check_paths(config: dict[str, float | str]) -> None:
     for k, v in config.items():
-        if "path" in k:
-            if not os.path.exists(v):
-                raise ValueError(f"path={k} not found.")
+        if "path" in k and not os.path.exists(v):
+            raise ValueError(f"path={k} not found.")
 
 
 def step0_load_config(step: int) -> dict[str, Any]:
@@ -46,100 +45,181 @@ def step1_load_asset_and_liability_tapes(
     return asset_portfolio, liability_portfolio
 
 
-def simulate_projection(
-    asset_portfolio: AssetPortfolio, liability_portfolio: LiabilityPortfolio, capital: float, years: int
-) -> float:
-    reserve = capital
-    for year in range(1, years + 1):
-        reserve *= 1 + asset_portfolio.average_yield()
-        reserve -= liability_portfolio.expected_yearly_benefit()
+class ScenarioSimulator:
+    def __init__(
+        self,
+        asset_portfolio: AssetPortfolio,
+        liability_portfolio: LiabilityPortfolio,
+        initial_capital: float,
+        maximum_capital: float,
+        years: int,
+        max_iterations: int = 30,
+        tolerance: float = 1000,
+        minimum_capital: float = 0.0,
+    ):
+        self.asset_portfolio = asset_portfolio
+        self.liability_portfolio = liability_portfolio
+        self.initial_capital = initial_capital
+        self.maximum_capital = maximum_capital
+        self.minimum_capital = minimum_capital
+        self.years = years
+        self.max_iterations = max_iterations
+        self.tolerance = tolerance
 
-        asset_portfolio.age_one_year()
-        liability_portfolio.age_one_year()
+        self.iteration_info = {}
+        self.final_capital = None
+        self.total_time = None
 
-    return reserve
+    def run(self) -> None:
+        tic = perf_counter()
+        min_val = self.minimum_capital
+        max_val = self.maximum_capital
+        capital = self.initial_capital
 
+        for i in range(self.max_iterations):
+            scaled_assets = self.asset_portfolio.copy()
+            scaled_assets.scale_to_target(capital)
+            liabilities_copy = self.liability_portfolio.copy()
 
-def step2_calibrate_capital(
-    assets: AssetPortfolio,
-    liabilities: LiabilityPortfolio,
-    initial_guess: float,
-    maximum_capital: float,
-    years: int,
-    max_iterations: int = 30,
-    tolerance: float = 1000,
-) -> float:
-    min_val = 0
-    max_val = maximum_capital
-    capital = initial_guess
+            iteration_result = self.simulate_cashflows(
+                capital=capital,
+                asset_portfolio=scaled_assets,
+                liability_portfolio=liabilities_copy,
+            )
+            final_reserve = iteration_result["reserves"][-1]
 
-    calibrated_assets = assets.copy()
+            self.iteration_info[i] = {
+                "iteration": i + 1,
+                "capital": capital,
+                "final_reserve": final_reserve,
+                "min_val": min_val,
+                "max_val": max_val,
+                **iteration_result,
+            }
 
-    for i in range(max_iterations):
-        calibrated_assets.scale_to_target(capital)
-        assert (
-            abs(calibrated_assets.market_value() - capital) < 1e-6
-        ), f"market_mv({calibrated_assets.market_value():,.2f})not matched with capital({capital:,.2f})"
+            if abs(final_reserve) < self.tolerance:
+                break
 
-        final_reserve = simulate_projection(calibrated_assets.copy(), liabilities.copy(), capital, years)
-        print(f"    Iter {i+1:02d}: Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}")
+            if final_reserve < 0:
+                min_val = capital
+            else:
+                max_val = capital
 
-        if abs(final_reserve) < tolerance:
-            break
+            capital = (min_val + max_val) / 2
 
-        if final_reserve < 0:
-            min_val = capital
-        else:
-            max_val = capital
+        self.final_capital = capital
+        toc = perf_counter()
+        t, units = get_time(toc - tic, dp=2)
+        self.total_time = {"t": t, "units": units}
 
-        capital = (min_val + max_val) / 2
+    def simulate_cashflows(
+        self,
+        capital: float,
+        asset_portfolio: AssetPortfolio,
+        liability_portfolio: LiabilityPortfolio,
+    ) -> dict[str, list[float]]:
+        reserves = [capital]
+        asset_yields = []
+        liability_benefits = []
 
-    return capital
+        reserve = capital
+        for _ in range(1, self.years + 1):
+            asset_yield = asset_portfolio.average_yield()
+            liability_benefit = liability_portfolio.expected_yearly_benefit()
+
+            reserve *= 1 + asset_yield
+            reserve -= liability_benefit
+
+            asset_portfolio.age_one_year()
+            liability_portfolio.age_one_year()
+
+            reserves.append(reserve)
+            asset_yields.append(asset_yield)
+            liability_benefits.append(liability_benefit)
+
+        return {
+            "reserves": reserves,
+            "asset_yields": asset_yields,
+            "liability_expected_yearly_benefits": liability_benefits,
+        }
+
+    def output_report(self, csv_path: str) -> None:
+        with open(csv_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(
+                [
+                    "Iteration",
+                    "Capital",
+                    "Final Reserve",
+                    "Min Bound",
+                    "Max Bound",
+                    "Year",
+                    "Reserve",
+                    "Asset Yield",
+                    "Liability Benefit",
+                ]
+            )
+            for i, info in self.iteration_info.items():
+                for year, (reserve, yld, liability) in enumerate(
+                    zip(
+                        info["reserves"],
+                        [None] + info["asset_yields"],
+                        [None] + info["liability_expected_yearly_benefits"],
+                    )
+                ):
+                    writer.writerow(
+                        [
+                            i + 1,
+                            info["capital"],
+                            info["final_reserve"],
+                            info["min_val"],
+                            info["max_val"],
+                            year,
+                            reserve,
+                            yld,
+                            liability,
+                        ]
+                    )
 
 
 if __name__ == "__main__":
     print("*" * 100)
-    print("*" * 100)
     print("Starting programme.")
     tic_overall = perf_counter()
 
-    # Step 0
     config_data = step0_load_config(step=0)
     paths = (config_data["asset_path"], config_data["liability_path"])
     max_years = config_data.get("projection_horizon", 30)
     max_iterations = config_data.get("max_iterations", 30)
 
-    # Outer loop over scenarios
     for scenario in config_data["scenarios"]:
         print(f"\nProcessing scenario: {scenario['name']}")
 
-        # Step 1: Load tapes
         asset_portfolio, liability_portfolio = step1_load_asset_and_liability_tapes(
             paths=paths, scenario_data=scenario, liability_interest=config_data["liability_interest"], step=1
         )
+
         initial_capital = config_data["initial_capital"]
         maximum_capital = config_data["maximum_capital"]
 
-        print(f"Scenario '{scenario['name']}' loaded:")
-        print(f"  - Asset MV: {asset_portfolio.market_value():,.2f}")
-        print(f"Liability MV(APV): {liability_portfolio.insurance_apv():,.2f}")
-        print(f"  - Initial capital guess: {initial_capital:,.2f}")
-
-        # Step 2: Bisection search for required capital
-        calibrated_capital = step2_calibrate_capital(
-            asset_portfolio,
-            liability_portfolio,
-            initial_guess=initial_capital,
+        scenario_simulator = ScenarioSimulator(
+            asset_portfolio=asset_portfolio,
+            liability_portfolio=liability_portfolio,
+            initial_capital=initial_capital,
             maximum_capital=maximum_capital,
             years=max_years,
             max_iterations=max_iterations,
         )
 
-        print(f"Final capital required for scenario '{scenario['name']}': ${calibrated_capital:,.2f}")
+        scenario_simulator.run()
+        print(f"Final capital required for scenario '{scenario['name']}': ${scenario_simulator.final_capital:,.2f}")
+
+        csv_path = f"data/output_{scenario['name']}_report.csv"
+        scenario_simulator.output_report(csv_path)
+        print(f"Report saved to: {csv_path}")
 
     toc_overall = perf_counter()
     t, units = get_time(t=toc_overall - tic_overall, dp=2)
     print(f"\nTime taken (overall) = {t} {units}.")
     print("Ending programme.")
-    print("*" * 100)
     print("*" * 100)
