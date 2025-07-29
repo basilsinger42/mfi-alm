@@ -11,12 +11,18 @@ from mfi_alm.liabilities.liability_portfolio_loader import load_liability_portfo
 from mfi_alm.utils import get_time
 
 CONFIG_PATH = "data/config.json"
+OUTPUT_DIR = "data/outputs"
 
 
 def check_paths(config: dict[str, float | str]) -> None:
     for k, v in config.items():
         if "path" in k and not os.path.exists(v):
             raise ValueError(f"path={k} not found.")
+
+
+def ensure_output_dir_exists():
+    if not os.path.exists(OUTPUT_DIR):
+        os.makedirs(OUTPUT_DIR)
 
 
 def step0_load_config(step: int) -> dict[str, Any]:
@@ -69,6 +75,7 @@ class ScenarioSimulator:
         self.iteration_info = {}
         self.final_capital = None
         self.total_time = None
+        self.converged = False
 
     def run(self) -> None:
         tic = perf_counter()
@@ -77,6 +84,7 @@ class ScenarioSimulator:
         capital = self.initial_capital
 
         for i in range(self.max_iterations):
+            print(f"  Iteration {i + 1:02d}...", end=" ")
             scaled_assets = self.asset_portfolio.copy()
             scaled_assets.scale_to_target(capital)
             liabilities_copy = self.liability_portfolio.copy()
@@ -88,6 +96,8 @@ class ScenarioSimulator:
             )
             final_reserve = iteration_result["reserves"][-1]
 
+            print(f"Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}")
+
             self.iteration_info[i] = {
                 "iteration": i + 1,
                 "capital": capital,
@@ -98,6 +108,7 @@ class ScenarioSimulator:
             }
 
             if abs(final_reserve) < self.tolerance:
+                self.converged = True
                 break
 
             if final_reserve < 0:
@@ -143,8 +154,12 @@ class ScenarioSimulator:
             "liability_expected_yearly_benefits": liability_benefits,
         }
 
-    def output_report(self, csv_path: str) -> None:
-        with open(csv_path, "w", newline="") as f:
+    def output_report(self, scenario_name: str) -> None:
+        detailed_path = os.path.join(OUTPUT_DIR, f"output_{scenario_name}_report_detailed.csv")
+        summary_path = os.path.join(OUTPUT_DIR, f"output_{scenario_name}_report.csv")
+
+        # Detailed report (all iterations, all years)
+        with open(detailed_path, "w", newline="") as f:
             writer = csv.writer(f)
             writer.writerow(
                 [
@@ -181,6 +196,22 @@ class ScenarioSimulator:
                         ]
                     )
 
+        # Summary report (only final result)
+        with open(summary_path, "w", newline="") as f:
+            writer = csv.writer(f)
+            writer.writerow(["Scenario", "Final Capital", "Converged", "Final Reserve", "Time", "Units"])
+            last_iter = list(self.iteration_info.values())[-1] if self.iteration_info else {}
+            writer.writerow(
+                [
+                    scenario_name,
+                    self.final_capital,
+                    self.converged,
+                    last_iter.get("final_reserve", None),
+                    self.total_time["t"],
+                    self.total_time["units"],
+                ]
+            )
+
 
 if __name__ == "__main__":
     print("*" * 100)
@@ -188,6 +219,7 @@ if __name__ == "__main__":
     tic_overall = perf_counter()
 
     config_data = step0_load_config(step=0)
+    ensure_output_dir_exists()
     paths = (config_data["asset_path"], config_data["liability_path"])
     max_years = config_data.get("projection_horizon", 30)
     max_iterations = config_data.get("max_iterations", 30)
@@ -214,9 +246,8 @@ if __name__ == "__main__":
         scenario_simulator.run()
         print(f"Final capital required for scenario '{scenario['name']}': ${scenario_simulator.final_capital:,.2f}")
 
-        csv_path = f"data/output_{scenario['name']}_report.csv"
-        scenario_simulator.output_report(csv_path)
-        print(f"Report saved to: {csv_path}")
+        scenario_simulator.output_report(scenario_name=scenario["name"])
+        print(f"Reports saved to: {OUTPUT_DIR}/output_{scenario['name']}_report[_detailed].csv")
 
     toc_overall = perf_counter()
     t, units = get_time(t=toc_overall - tic_overall, dp=2)
