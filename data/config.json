@@ -5,12 +5,9 @@
   "initial_capital": 650000000,
   "maximum_capital": 1100000000,
   "scenarios": [
-    { "name": "base", "ytm_factor": 1.1, "mortality_factor": 0.7 }],
-  "_comment": {
-  "inactive_scenarios":[
-    { "name": "health_crisis", "ytm_factor": 1.0, "mortality_factor": 1.25 },
-    { "name": "crazy_markets", "ytm_factor": 0.75, "mortality_factor": 1.0 },
-    { "name": "double_whammy", "ytm_factor": 0.75, "mortality_factor": 1.25 }
+    { "name": "base", "ytm_factor": 1.1, "mortality_factor": 0.7 },
+    { "name": "health_crisis", "ytm_factor": 1.1, "mortality_factor": 0.9 },
+    { "name": "crazy_markets", "ytm_factor": 0.75, "mortality_factor": 0.7 },
+    { "name": "double_whammy", "ytm_factor": 0.75, "mortality_factor": 0.9 }
   ]
- }
 }
