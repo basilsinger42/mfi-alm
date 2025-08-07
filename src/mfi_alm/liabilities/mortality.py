@@ -23,6 +23,11 @@ class MortalityModel:
     def tqx(self, t: int, x: int) -> float:
         return 1 - self.tpx(t, x)
 
+    def tqx_vector(self, x: int, years: int) -> np.ndarray:
+        """Return a vector of tqx(1, x + t) for t = 0 to years-1"""
+        tqx_values = [self.tqx(1, x + t) if x + t <= self.max_age else 1.0 for t in range(years)]
+        return np.array(tqx_values)
+
     def prob_Kx_equals_k(self, k: int, x: int) -> float:
         return self.tpx(k, x) * self.tqx(1, x + k)
 

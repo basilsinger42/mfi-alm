@@ -1,5 +1,4 @@
 from typing import Self
-
 import numpy as np
 
 
@@ -34,13 +33,16 @@ class FixedBond:
         """Continuously compounding discount factor."""
         return np.exp(-rate * t)
 
-    def age(self, n: int | None = 1) -> None:
-        """Reduce the bond's remaining maturity by `n` years."""
-        if n is None:
-            n = 1
-        if n > self.maturity:
-            raise ValueError("You cannot age beyond maturity date.")
-        self.maturity -= n
+    def project_prices(self, ytm: float, years: int) -> np.ndarray:
+        """Project bond prices over the next 'years' years given constant YTM."""
+        prices = []
+        for t in range(years):
+            if self.maturity - t <= 0:
+                prices.append(0.0)
+            else:
+                temp_bond = FixedBond(self.face, self.coupon, self.maturity - t, self.freq)
+                prices.append(temp_bond.price(ytm))
+        return np.array(prices)
 
     def copy(self) -> Self:
         return FixedBond(face=self.face, coupon=self.coupon, maturity=self.maturity, freq=self.freq)

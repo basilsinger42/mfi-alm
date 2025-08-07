@@ -14,12 +14,6 @@ CONFIG_PATH = "data/config.json"
 OUTPUT_DIR = "data/outputs"
 
 
-def check_paths(config: dict[str, float | str]) -> None:
-    for k, v in config.items():
-        if "path" in k and not os.path.exists(v):
-            raise ValueError(f"path={k} not found.")
-
-
 def ensure_output_dir_exists():
     if not os.path.exists(OUTPUT_DIR):
         os.makedirs(OUTPUT_DIR)
@@ -71,7 +65,6 @@ class ScenarioSimulator:
         self.years = years
         self.max_iterations = max_iterations
         self.tolerance = tolerance
-
         self.iteration_info = {}
         self.final_capital = None
         self.total_time = None
@@ -84,26 +77,25 @@ class ScenarioSimulator:
         capital = self.initial_capital
 
         for i in range(self.max_iterations):
-            print(f"  Iteration {i + 1:02d}...", end=" ")
+            print(f"Iteration {i + 1:02d}...", end=" ")
             scaled_assets = self.asset_portfolio.copy()
             scaled_assets.scale_to_target(capital)
             liabilities_copy = self.liability_portfolio.copy()
 
             iteration_result = self.simulate_cashflows(
-                capital=capital,
-                asset_portfolio=scaled_assets,
-                liability_portfolio=liabilities_copy,
+                capital=capital, asset_portfolio=scaled_assets, liability_portfolio=liabilities_copy
             )
             final_reserve = iteration_result["reserves"][-1]
 
             print(f"Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}")
 
+            # Ensure the dictionary includes 'min_val' and 'max_val'
             self.iteration_info[i] = {
                 "iteration": i + 1,
                 "capital": capital,
                 "final_reserve": final_reserve,
-                "min_val": min_val,
-                "max_val": max_val,
+                "min_val": min_val,  # Ensure 'min_val' is always included
+                "max_val": max_val,  # Ensure 'max_val' is always included
                 **iteration_result,
             }
 
@@ -124,10 +116,7 @@ class ScenarioSimulator:
         self.total_time = {"t": t, "units": units}
 
     def simulate_cashflows(
-        self,
-        capital: float,
-        asset_portfolio: AssetPortfolio,
-        liability_portfolio: LiabilityPortfolio,
+        self, capital: float, asset_portfolio: AssetPortfolio, liability_portfolio: LiabilityPortfolio
     ) -> dict[str, list[float]]:
         reserves = [capital]
         asset_yields = []

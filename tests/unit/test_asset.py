@@ -25,3 +25,12 @@ def test_copy_asset():
 
     assert original_asset.ytm == copied_asset.ytm
     assert original_asset.market_value() == copied_asset.market_value()
+
+
+def test_projected_market_values_normal_case():
+    """Test projected market values over the next years with typical YTM."""
+    bond = FixedBond(face=1000, coupon=0.05, maturity=5.0, freq=2)
+    asset = Asset(fixed_bond=bond, ytm=0.04)
+    expected_prices = np.array([1043.05899898, 1035.12201075, 1026.8611079, 1018.2630712, 1009.31414196])
+    actual_prices = asset.projected_market_values(5)
+    assert np.allclose(actual_prices, expected_prices, rtol=1e-5)
