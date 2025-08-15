@@ -2,6 +2,8 @@ from typing import Self
 
 from mfi_alm.assets.bonds import FixedBond
 
+import numpy as np
+
 
 class Asset:
     """An asset class representing a fixed-rate bond and its market value."""
@@ -12,6 +14,10 @@ class Asset:
 
     def market_value(self) -> float:
         return self.fixed_bond.price(ytm=self.ytm)
+
+    def projected_market_values(self, years: int) -> np.ndarray:
+        """Project market values over the next `years` years."""
+        return self.fixed_bond.project_prices(ytm=self.ytm, years=years)
 
     def copy(self) -> Self:
         return Asset(fixed_bond=self.fixed_bond.copy(), ytm=self.ytm)

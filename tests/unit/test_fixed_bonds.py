@@ -33,28 +33,6 @@ def test_price_below_par(sample_bond: FixedBond):
     assert price < 1000
 
 
-# Age() test
-def test_age_normal_case():
-    """Test aging the bond by a valid number of years."""
-    bond = FixedBond(face=1000, coupon=0.05, maturity=10.0)
-    bond.age(2)
-    assert bond.maturity == 8.0
-
-
-def test_age_boundary_case():
-    """Test aging the bond exactly to maturity."""
-    bond = FixedBond(face=1000, coupon=0.05, maturity=5.0)
-    bond.age(5)
-    assert bond.maturity == 0.0
-
-
-def test_age_beyond_maturity():
-    """Test aging beyond maturity raises ValueError."""
-    bond = FixedBond(face=1000, coupon=0.05, maturity=3.0)
-    with pytest.raises(ValueError, match="You cannot age beyond maturity date."):
-        bond.age(4)
-
-
 def test_copy():
     original = FixedBond(face=1000, coupon=0.05, maturity=10, freq=2)
 
@@ -64,3 +42,13 @@ def test_copy():
     assert original.coupon == copied.coupon
     assert original.maturity == copied.maturity
     assert original.freq == copied.freq
+
+
+def test_project_prices():
+    """Test the project_prices method for FixedBond."""
+    bond = FixedBond(face=1000, coupon=0.05, maturity=10, freq=2)
+    ytm = 0.04
+    years = 5
+    expected_prices = np.array([1078.31272564, 1096.81446929, 1090.05101408, 1083.01153701, 1075.68477344])
+    actual_prices = bond.project_prices(ytm, years)
+    assert np.allclose(actual_prices, expected_prices, rtol=1e-5)

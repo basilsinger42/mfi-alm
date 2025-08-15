@@ -53,3 +53,14 @@ def test_simulate_remaining_death_year(mortality_table: MortalityModel):
 
 def test_simulate_remaining_death_year_for_dead(mortality_table: MortalityModel):
     assert mortality_table.simulate_remaining_death_year(x=150) == 0
+
+
+def test_tqx_vector_correctness(mortality_table: MortalityModel):
+    x = 30
+    years = 5
+    result = mortality_table.tqx_vector(x=x, years=years)
+
+    expected = np.array([mortality_table.tqx(1, x + t) for t in range(years)])
+    assert isinstance(result, np.ndarray)
+    assert result.shape == (years,)
+    assert np.allclose(result, expected, atol=1e-8)

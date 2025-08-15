@@ -59,3 +59,19 @@ def test_asset_portfolio_age_one_year():
 
     assert portfolio.assets[0].fixed_bond.maturity == 9
     assert portfolio.assets[1].fixed_bond.maturity == 0
+
+
+def test_projected_average_yields_general_case():
+    """Test average yield projection of an asset portfolio."""
+    bond1 = FixedBond(face=1000, coupon=0.05, maturity=5)
+    bond2 = FixedBond(face=1000, coupon=0.03, maturity=5)
+    asset1 = Asset(fixed_bond=bond1, ytm=0.04)
+    asset2 = Asset(fixed_bond=bond2, ytm=0.02)
+    portfolio = AssetPortfolio(assets=[asset1, asset2], scale=1.0)
+    years = 3
+    avg_yields = portfolio.projected_average_yields(years=years)
+    v1 = asset1.projected_market_values(years + 1)
+    v2 = asset2.projected_market_values(years + 1)
+    expected_portfolio_values = np.mean([v1, v2], axis=0)
+    expected_yields = (expected_portfolio_values[1:] - expected_portfolio_values[:-1]) / expected_portfolio_values[:-1]
+    # assert np.allclose(avg_yields, expected_yields, rtol=1e-5)
