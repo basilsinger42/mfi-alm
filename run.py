@@ -3,6 +3,7 @@ from typing import Any
 import os
 import json
 import csv
+import numpy as np
 
 from mfi_alm.assets.asset_portfolio import AssetPortfolio
 from mfi_alm.assets.asset_portfolio_loader import AssetPortfolioLoader
@@ -118,29 +119,21 @@ class ScenarioSimulator:
     def simulate_cashflows(
         self, capital: float, asset_portfolio: AssetPortfolio, liability_portfolio: LiabilityPortfolio
     ) -> dict[str, list[float]]:
-        reserves = [capital]
-        asset_yields = []
-        liability_benefits = []
+        asset_yields = asset_portfolio.projected_average_yields(self.years)
+        liability_benefits = liability_portfolio.projected_expected_yearly_benefits(self.years)
 
-        reserve = capital
-        for _ in range(1, self.years + 1):
-            asset_yield = asset_portfolio.average_yield()
-            liability_benefit = liability_portfolio.expected_yearly_benefit()
+        growth_factors = np.cumprod(1 + asset_yields)
 
-            reserve *= 1 + asset_yield
-            reserve -= liability_benefit
+        adjusted_liabilities = np.cumsum(liability_benefits / growth_factors) * growth_factors
 
-            asset_portfolio.age_one_year()
-            liability_portfolio.age_one_year()
+        reserves = capital * growth_factors - adjusted_liabilities
 
-            reserves.append(reserve)
-            asset_yields.append(asset_yield)
-            liability_benefits.append(liability_benefit)
+        reserves = np.concatenate([[capital], reserves])
 
         return {
-            "reserves": reserves,
-            "asset_yields": asset_yields,
-            "liability_expected_yearly_benefits": liability_benefits,
+            "reserves": reserves.tolist(),
+            "asset_yields": asset_yields.tolist(),
+            "liability_expected_yearly_benefits": liability_benefits.tolist(),
         }
 
     def output_report(self, scenario_name: str) -> None:
@@ -216,30 +209,31 @@ if __name__ == "__main__":
     for scenario in config_data["scenarios"]:
         print(f"\nProcessing scenario: {scenario['name']}")
 
+        tic_scenario = perf_counter()
+
         asset_portfolio, liability_portfolio = step1_load_asset_and_liability_tapes(
             paths=paths, scenario_data=scenario, liability_interest=config_data["liability_interest"], step=1
         )
 
-        initial_capital = config_data["initial_capital"]
-        maximum_capital = config_data["maximum_capital"]
-
         scenario_simulator = ScenarioSimulator(
             asset_portfolio=asset_portfolio,
             liability_portfolio=liability_portfolio,
-            initial_capital=initial_capital,
-            maximum_capital=maximum_capital,
+            initial_capital=config_data["initial_capital"],
+            maximum_capital=config_data["maximum_capital"],
             years=max_years,
             max_iterations=max_iterations,
         )
 
         scenario_simulator.run()
         print(f"Final capital required for scenario '{scenario['name']}': ${scenario_simulator.final_capital:,.2f}")
-
         scenario_simulator.output_report(scenario_name=scenario["name"])
-        print(f"Reports saved to: {OUTPUT_DIR}/output_{scenario['name']}_report[_detailed].csv")
+
+        toc_scenario = perf_counter()
+        t, units = get_time(toc_scenario - tic_scenario, dp=2)
+        print(f"Time taken for scenario '{scenario['name']}' = {t} {units}.")
 
     toc_overall = perf_counter()
-    t, units = get_time(t=toc_overall - tic_overall, dp=2)
+    t, units = get_time(toc_overall - tic_overall, dp=2)
     print(f"\nTime taken (overall) = {t} {units}.")
     print("Ending programme.")
     print("*" * 100)

@@ -21,14 +21,8 @@ class AssetPortfolio:
     def projected_average_yields(self, years: int) -> np.ndarray:
         if len(self.assets) == 0:
             return np.zeros(years)
-
-        all_values = np.array(
-            [a.projected_market_values(years + 1) for a in self.assets]
-        )  # shape: (num_assets, years+1)
-        portfolio_values = self.scale * np.mean(all_values, axis=0)  # shape: (years+1,)
-
-        yields = (portfolio_values[1:] - portfolio_values[:-1]) / portfolio_values[:-1]
-        return yields
+        avg_yield = np.mean([a.ytm for a in self.assets])
+        return np.full(years, avg_yield)
 
     def age_one_year(self) -> None:
         for asset in self.assets:

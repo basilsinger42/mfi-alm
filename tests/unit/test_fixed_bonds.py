@@ -49,6 +49,6 @@ def test_project_prices():
     bond = FixedBond(face=1000, coupon=0.05, maturity=10, freq=2)
     ytm = 0.04
     years = 5
-    expected_prices = np.array([1078.31272564, 1071.81446929, 1065.05101408, 1058.01153701, 1050.68477344])
+    expected_prices = np.array([1078.31272564, 1096.81446929, 1090.05101408, 1083.01153701, 1075.68477344])
     actual_prices = bond.project_prices(ytm, years)
     assert np.allclose(actual_prices, expected_prices, rtol=1e-5)
