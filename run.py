@@ -89,7 +89,7 @@ class ScenarioSimulator:
             )
             final_reserve = iteration_result["reserves"][-1]
             toc_iteration = perf_counter()
-            t, units = get_time(t=toc_iteration-tic_iteration, dp=2)
+            t, units = get_time(t=toc_iteration - tic_iteration, dp=2)
 
             print(f"Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}, Time taken={t} {units}.")
 
