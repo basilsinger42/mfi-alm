@@ -83,12 +83,15 @@ class ScenarioSimulator:
             scaled_assets.scale_to_target(capital)
             liabilities_copy = self.liability_portfolio.copy()
 
+            tic_iteration = perf_counter()
             iteration_result = self.simulate_cashflows(
                 capital=capital, asset_portfolio=scaled_assets, liability_portfolio=liabilities_copy
             )
             final_reserve = iteration_result["reserves"][-1]
+            toc_iteration = perf_counter()
+            t, units = get_time(t=toc_iteration-tic_iteration, dp=2)
 
-            print(f"Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}")
+            print(f"Capital=${capital:,.2f}, Final Reserve=${final_reserve:,.2f}, Time taken={t} {units}.")
 
             # Ensure the dictionary includes 'min_val' and 'max_val'
             self.iteration_info[i] = {
