@@ -27,9 +27,9 @@ class MortalityModel:
     def tqx_vector(self, x: int, years: int) -> np.ndarray:
         """Return a vector of tqx(1, x + t) for t = 0 to years-1"""
         if x + years <= self.max_age:
-            return np.array(self.qx_lookup[int(x): int(x + years)])
+            return np.array(self.qx_lookup[int(x) : int(x + years)])
 
-        in_range = self.qx_lookup[int(x): int(self.max_age)]
+        in_range = self.qx_lookup[int(x) : int(self.max_age)]
         out_range = np.array([1] * (int(x + years) - self.max_age))
         return np.concatenate([in_range, out_range])
 
