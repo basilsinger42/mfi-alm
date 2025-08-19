@@ -12,6 +12,7 @@ class MortalityModel:
         self.df = df_mortality.set_index("x").copy()
         self.min_age = self.df.index.min()
         self.max_age = self.df.index.max()
+        self.qx_lookup = np.array([self.tqx(1, t) for t in range(self.max_age + 1)])
 
     def tpx(self, t: int, x: int) -> float:
         if x < self.min_age:
@@ -25,8 +26,12 @@ class MortalityModel:
 
     def tqx_vector(self, x: int, years: int) -> np.ndarray:
         """Return a vector of tqx(1, x + t) for t = 0 to years-1"""
-        tqx_values = [self.tqx(1, x + t) if x + t <= self.max_age else 1.0 for t in range(years)]
-        return np.array(tqx_values)
+        if x + years <= self.max_age:
+            return np.array(self.qx_lookup[int(x): int(x + years)])
+
+        in_range = self.qx_lookup[int(x): int(self.max_age)]
+        out_range = np.array([1] * (int(x + years) - self.max_age))
+        return np.concatenate([in_range, out_range])
 
     def prob_Kx_equals_k(self, k: int, x: int) -> float:
         return self.tpx(k, x) * self.tqx(1, x + k)
