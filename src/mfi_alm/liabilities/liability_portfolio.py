@@ -24,9 +24,4 @@ class LiabilityPortfolio:
         return LiabilityPortfolio(policyholders=[p.copy() for p in self.policyholders], interest=self.interest)
 
     def projected_expected_yearly_benefits(self, years: int) -> np.ndarray:
-
-        benefits = np.zeros(years)
-        for p in self.policyholders:
-            tqx_vector = p.mortality_model.tqx_vector(x=p.age, years=years)
-            benefits += p.benefit * tqx_vector
-        return benefits
+        return np.sum([p.mortality_model.tqx_vector(x=p.age, years=years) * p.benefit for p self.policyholders])
