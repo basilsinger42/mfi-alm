@@ -81,11 +81,12 @@ class ScenarioSimulator:
             print(f"Iteration {i + 1:02d}...", end=" ")
             scaled_assets = self.asset_portfolio.copy()
             scaled_assets.scale_to_target(capital)
-            liabilities_copy = self.liability_portfolio.copy()
 
             tic_iteration = perf_counter()
             iteration_result = self.simulate_cashflows(
-                capital=capital, asset_portfolio=scaled_assets, liability_portfolio=liabilities_copy
+                capital=capital,
+                asset_portfolio=scaled_assets,
+                liability_portfolio=self.liability_portfolio,
             )
             final_reserve = iteration_result["reserves"][-1]
             toc_iteration = perf_counter()
@@ -213,11 +214,11 @@ if __name__ == "__main__":
         print(f"\nProcessing scenario: {scenario['name']}")
 
         tic_scenario = perf_counter()
-
         asset_portfolio, liability_portfolio = step1_load_asset_and_liability_tapes(
             paths=paths, scenario_data=scenario, liability_interest=config_data["liability_interest"], step=1
         )
 
+        print("Asset and liabilities loaded. Starting simulation.")
         scenario_simulator = ScenarioSimulator(
             asset_portfolio=asset_portfolio,
             liability_portfolio=liability_portfolio,
@@ -226,7 +227,6 @@ if __name__ == "__main__":
             years=max_years,
             max_iterations=max_iterations,
         )
-
         scenario_simulator.run()
         print(f"Final capital required for scenario '{scenario['name']}': ${scenario_simulator.final_capital:,.2f}")
         scenario_simulator.output_report(scenario_name=scenario["name"])

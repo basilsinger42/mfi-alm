@@ -1,4 +1,4 @@
 [flake8]
-ignore = E41,E226,E302,W503
+ignore = E41,E226,E203,E302,W503
 max-line-length = 120
 exclude = tests/*

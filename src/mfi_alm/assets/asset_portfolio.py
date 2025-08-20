@@ -33,4 +33,4 @@ class AssetPortfolio:
         self.scale = target / base_value if base_value > 0 else 0.0
 
     def copy(self) -> Self:
-        return AssetPortfolio(assets=[a.copy() for a in self.assets], scale=self.scale)
+        return AssetPortfolio(assets=[a for a in self.assets], scale=self.scale)
